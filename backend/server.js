@@ -1,7 +1,9 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import {sql} from './config/db.js';
+import {initDB} from './config/db.js';
 import rateLimiter from './middleware/rateLimiter.js';
+
+import transactionRoutes from './routes/transactionsRoutes.js';
 
 dotenv.config();
 
@@ -12,127 +14,13 @@ const PORT = process.env.PORT;
 app.use(express.json());
 app.use(rateLimiter)
 
-// init DB
-async function initDB(){
-    try{
-        await sql`CREATE TABLE IF NOT EXISTS transactions(
-            id SERIAL PRIMARY KEY,
-            userId VARCHAR(255) NOT NULL,
-            title VARCHAR(255) NOT NULL,
-            amount DECIMAL(10, 2) NOT NULL,
-            category VARCHAR(255) NOT NULL,
-            createdAt DATE NOT NULL DEFAULT CURRENT_DATE
-        )`
-        console.log("Database Initialized Successfully");
-    }catch(err){
-        console.log("Error Initializing Database: ", err);
-        process.exit(1);
-    }
-}
-
-
+// home route
 app.get('/', (req, res)=>{
     res.send("Hello from MyPay Backend");
 })
+
 // routes
-// 1. add transaction
-app.post('/api/trasactions', async (req, res)=>{
-    try{
-        const {title, amount, category, userId} = req.body;
-        if(!title || amount===undefined || !category || !userId){
-            return res.status(400).json({
-                msg:"All fields are required"
-            })
-        }
-
-        const transaction = await sql`INSERT INTO transactions (title, amount, category, userId) VALUES (${title}, ${amount}, ${category}, ${userId}) RETURNING *`;
-
-        res.status(201).json({
-            msg:"Successfully added transaction",
-            transaction: transaction[0]
-        })
-
-
-    }catch(err){
-        res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later.",
-            "error": err.message
-        })
-    }
-})
-
-// 2. get transaction by userId
-app.get('/api/transactions/:userId', async(req, res)=>{
-    try{
-        const {userId} = req.params;
-        const transactions = await sql`SELECT * FROM transactions WHERE userId = ${userId} ORDER BY createdAt DESC`;
-        res.status(200).json({
-            "transactions": transactions
-        });
-    }catch(err){
-        res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later.",
-            "error": err.message
-        })
-    }
-})
-
-// 3. delete transaction by id
-app.delete('/api/transactions/:id', async(req, res)=>{
-    try{
-        const {id} = req.params;
-
-        if(isNaN(parseInt(id))){
-            return res.status(400).json({
-                msg: "Transaction ID must be integer"
-            });
-        }
-
-        const result = await sql`DELETE FROM transactions WHERE id = ${id} RETURNING *`;
-        if (result.length === 0){
-            return res.status(404).json({
-                msg: "Transaction not found"
-            });
-        }
-        res.status(200).json({
-            "msg": "Transaction deleted successfully",
-            "result": result
-        });
-    }catch(err){
-        res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later.",
-            "error": err.message
-        })
-    }
-}) 
-
-// 4. summary of transactions by userId
-app.get('/api/transactions/summary/:userId', async(req, res)=>{
-    try{
-        const {userId} = req.params;
-        const balance = await sql`
-            SELECT COALESCE(SUM(amount), 0) AS balance FROM transactions WHERE userId = ${userId};
-        `;
-        const income = await sql`
-            SELECT COALESCE(SUM(amount), 0) AS income FROM transactions WHERE userId = ${userId} AND amount > 0;
-        `;      
-        const expense = await sql`
-            SELECT COALESCE(SUM(amount), 0) AS expense FROM transactions WHERE userId = ${userId} AND amount < 0;
-        `;
-        res.status(200).json({
-            "balance": balance[0],
-            "income": income[0],
-            "expense": expense[0]
-        });
-        
-    }catch(err){
-        res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later.",
-            "error": err.message
-        })
-    }
-
-})
+app.use('/api/transactions', transactionRoutes);
 
 initDB().then(()=>{
         app.listen(PORT, ()=>{
