@@ -97,12 +97,19 @@ app.delete('/api/transactions/:id', async(req, res)=>{
             "result": result
         });
     }catch(err){
-        console.log("Error fetching transaction: ", err);
+        console.log("Error deleting transaction: ", err);
         res.status(500).json({
             msg:"Sorry, It's not you, it's us. Please try again later."
         })
     }
 }) 
+
+// 4. summary of transactions by userId
+app.get('/api/transactions/summary/:userId', async(req, res)=>{
+
+
+})
+
 initDB().then(()=>{
         app.listen(PORT, ()=>{
             console.log(`Server is running on port ${PORT}: http://127.0.0.1:${PORT}`);
