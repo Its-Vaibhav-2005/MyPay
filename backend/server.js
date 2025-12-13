@@ -52,9 +52,9 @@ app.post('/api/trasactions', async (req, res)=>{
 
 
     }catch(err){
-        console.log("Error adding transaction: ", err);
         res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later."
+            msg:"Sorry, It's not you, it's us. Please try again later.",
+            "error": err.message
         })
     }
 })
@@ -68,9 +68,9 @@ app.get('/api/transactions/:userId', async(req, res)=>{
             "transactions": transactions
         });
     }catch(err){
-        console.log("Error fetching transaction: ", err);
         res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later."
+            msg:"Sorry, It's not you, it's us. Please try again later.",
+            "error": err.message
         })
     }
 })
@@ -97,16 +97,38 @@ app.delete('/api/transactions/:id', async(req, res)=>{
             "result": result
         });
     }catch(err){
-        console.log("Error deleting transaction: ", err);
         res.status(500).json({
-            msg:"Sorry, It's not you, it's us. Please try again later."
+            msg:"Sorry, It's not you, it's us. Please try again later.",
+            "error": err.message
         })
     }
 }) 
 
 // 4. summary of transactions by userId
 app.get('/api/transactions/summary/:userId', async(req, res)=>{
-
+    try{
+        const {userId} = req.params;
+        const balance = await sql`
+            SELECT COALESCE(SUM(amount), 0) AS balance FROM transactions WHERE userId = ${userId};
+        `;
+        const income = await sql`
+            SELECT COALESCE(SUM(amount), 0) AS income FROM transactions WHERE userId = ${userId} AND amount > 0;
+        `;      
+        const expense = await sql`
+            SELECT COALESCE(SUM(amount), 0) AS expense FROM transactions WHERE userId = ${userId} AND amount < 0;
+        `;
+        res.status(200).json({
+            "balance": balance[0],
+            "income": income[0],
+            "expense": expense[0]
+        });
+        
+    }catch(err){
+        res.status(500).json({
+            msg:"Sorry, It's not you, it's us. Please try again later.",
+            "error": err.message
+        })
+    }
 
 })
 
