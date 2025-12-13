@@ -9,6 +9,7 @@ const rateLimiter = async (req, res, next) => {
                 ip: req.ip
             });
         }
+        next(); // Continue to the next middleware/route when rate limit passes
     }catch(err){
         console.log("Rate Limit Error: ", err);
         next(err);
