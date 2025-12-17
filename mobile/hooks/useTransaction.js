@@ -23,10 +23,11 @@ export const useTransactions = (userId) => {
     }, [userId]);
 
     const fetchSummary = useCallback(async () => {
+        const URI = `${API_URL}/transactions/summary/${userId}`;
+        console.log("URI SUMMARY:", URI);
         try{
             // const response = await fetch(`${API_URL}/transactions/summary/${userId}`);
-            const response = await fetch(`${API_URL}/transactions/summary/${userId}`);
-            console.log("user:", userId);
+            const response = await fetch(URI);
             const data = await response.json();
             setSummary(data)
         }catch(error){

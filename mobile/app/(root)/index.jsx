@@ -1,10 +1,11 @@
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View, FlatList, Alert } from 'react-native'
 import { SignOutButton } from '@/components/SignOutButton'
 import PageLoader from "../../components/PageLoader"
 import {BalanceCard} from '../../components/BalanceCard'
-
+import {TransactionItem} from '../../components/TransactionItem'
+import NoTransactionFound from '../../components/NoTransactionFound'
 import { Image } from 'react-native'  
 
 import {useTransactions} from "../../hooks/useTransaction"
@@ -24,12 +25,20 @@ export default function Page() {
     }, [loadData]
   )
 
+  const handleDelete = (id) => {
+    Alert.alert(
+      "Confirm Delete",
+      "Are you sure you want to delete this transaction?",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete", style: "destructive", onPress: () => deleteTransaction(id) }
+      ]
+    )
+  }
+
   if(isLoading){
     return <PageLoader />
   }
-  console.log("User ID:", user.id); 
-  console.log("Transactions:", transactions);
-  console.log("Summary:", summary);
 
   return (
     <View style={styles.container}>
@@ -60,8 +69,21 @@ export default function Page() {
 
         {/* Summary */}
         <BalanceCard summary={summary} />
+        <View style={styles.transactionsHeaderContainer}>
+          <Text style={styles.sectionTitle}>Recent Transactions</Text>
+        </View>
 
-      </View>      
+      </View>   
+      {/* Transactions List */}
+      <FlatList
+        style={styles.transactionsList}
+        contentContainerStyle={styles.transactionsListContent}
+        data={transactions}
+        renderItem={({item})=>(
+          <TransactionItem item={item} onDelete={handleDelete} />
+        )}
+        ListEmptyComponent={<NoTransactionFound />}
+      />
     </View>
   )
 }
