@@ -1,13 +1,13 @@
 import {
   View,
   Text,
-  Alert,
   TouchableOpacity,
   TextInput,
   ActivityIndicatorBase,
   ActivityIndicator,
   ScrollView,
 } from "react-native"
+import CustomAlert from '../../components/CustomAlert'
 import { useRouter } from 'expo-router'
 import { useUser } from '@clerk/clerk-expo'
 import { useState } from 'react'
@@ -43,16 +43,26 @@ const create = () => {
     const [selectedCategory, setSelectedCategory] = useState("")
     const [isExpense, setIsExpense] = useState(true)
     const [isLoading, setIsLoading] = useState(false)
+    const [alertConfig, setAlertConfig] = useState({
+        visible: false,
+        title: "",
+        message: "",
+        confirmText: "OK",
+        cancelText: "Cancel",
+        onConfirm: () => {},
+        onCancel: undefined,
+    });
+    const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
 
     const handleCreate = async() =>{
         if(!title){
-            return Alert.alert("Validation Error", "Hey, Title is missing!")
+            return setAlertConfig({ visible: true, title: "Validation Error", message: "Hey, Title is missing!", onConfirm: hideAlert })
         }
         if(!amount || isNaN(parseFloat(amount))|| parseFloat(amount) <=0){
-            return Alert.alert("Validation Error", "Hey, is this is a valid amount?")
+            return setAlertConfig({ visible: true, title: "Validation Error", message: "Hey, is this is a valid amount?", onConfirm: hideAlert })
         }
         if(!selectedCategory){
-            return Alert.alert("Validation Error", "Please select a category")
+            return setAlertConfig({ visible: true, title: "Validation Error", message: "Please select a category", onConfirm: hideAlert })
         }
 
         setIsLoading(true)
@@ -74,11 +84,18 @@ const create = () => {
             if(!response.ok){
                 throw new Error("Network response was not ok")
             }
-            Alert.alert("Success", "Transaction created successfully!")
-            router.back()
+            setAlertConfig({ 
+                visible: true, 
+                title: "Success", 
+                message: "Transaction created successfully!", 
+                onConfirm: () => {
+                    hideAlert();
+                    router.back();
+                }
+            })
         }catch(error){
             console.log("Failed to create transaction:", error);
-            Alert.alert("Error", "Failed to create transaction. Please try again.")
+            setAlertConfig({ visible: true, title: "Error", message: "Failed to create transaction. Please try again.", onConfirm: hideAlert })
         }finally{
             setIsLoading(false)
         }
@@ -240,6 +257,15 @@ const create = () => {
           <ActivityIndicator size="large" color={COLORS.primary} />
         </View>
       )}
+      <CustomAlert
+        visible={alertConfig.visible}
+        title={alertConfig.title}
+        message={alertConfig.message}
+        confirmText={alertConfig.confirmText}
+        cancelText={alertConfig.cancelText}
+        onConfirm={alertConfig.onConfirm}
+        onCancel={alertConfig.onCancel}
+      />
     </View>
   );
 }

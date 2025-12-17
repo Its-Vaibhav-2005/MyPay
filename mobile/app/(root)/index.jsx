@@ -1,11 +1,12 @@
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
 import { useRouter } from 'expo-router'
-import { Text, TouchableOpacity, View, FlatList, Alert, RefreshControl } from 'react-native'
+import { Text, TouchableOpacity, View, FlatList, RefreshControl } from 'react-native'
 import { SignOutButton } from '@/components/SignOutButton'
 import PageLoader from "../../components/PageLoader"
 import {BalanceCard} from '../../components/BalanceCard'
 import {TransactionItem} from '../../components/TransactionItem'
 import NoTransactionFound from '../../components/NoTransactionFound'
+import CustomAlert from '../../components/CustomAlert'
 import { Image } from 'react-native'  
 
 import {useTransactions} from "../../hooks/useTransaction"
@@ -17,6 +18,15 @@ export default function Page() {
   const { user } = useUser()
   const router = useRouter()
   const [refreshing, setRefreshing] =  useState(false);
+  const [alertConfig, setAlertConfig] = useState({
+    visible: false,
+    title: "",
+    message: "",
+    confirmText: "OK",
+    cancelText: "Cancel",
+    onConfirm: () => {},
+    onCancel: undefined,
+  });
 
   const {transactions, summary, isLoading, loadData, deleteTransaction} = useTransactions(user.id)
 
@@ -26,15 +36,40 @@ export default function Page() {
     }, [loadData]
   )
 
+  const hideAlert = () => setAlertConfig(prev => ({ ...prev, visible: false }));
+
   const handleDelete = (id) => {
-    Alert.alert(
-      "Confirm Delete",
-      "Are you sure you want to delete this transaction?",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => deleteTransaction(id) }
-      ]
-    )
+    setAlertConfig({
+      visible: true,
+      title: "Confirm Delete",
+      message: "Are you sure you want to delete this transaction?",
+      confirmText: "Delete",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        hideAlert();
+        const result = await deleteTransaction(id);
+        setTimeout(() => {
+          if (result.success) {
+            setAlertConfig({
+              visible: true,
+              title: "Success",
+              message: "Transaction deleted successfully.",
+              confirmText: "OK",
+              onConfirm: hideAlert,
+            });
+          } else {
+            setAlertConfig({
+              visible: true,
+              title: "Error",
+              message: "Failed to delete transaction: " + result.error,
+              confirmText: "OK",
+              onConfirm: hideAlert,
+            });
+          }
+        }, 300);
+      },
+      onCancel: hideAlert
+    });
   }
 
   const onRefresh = async () => {
@@ -49,6 +84,15 @@ export default function Page() {
 
   return (
     <View style={styles.container}>
+        <CustomAlert
+            visible={alertConfig.visible}
+            title={alertConfig.title}
+            message={alertConfig.message}
+            confirmText={alertConfig.confirmText}
+            cancelText={alertConfig.cancelText}
+            onConfirm={alertConfig.onConfirm}
+            onCancel={alertConfig.onCancel}
+        />
       <View style={styles.content}>
         {/*Header */}
         <View style={styles.header}>

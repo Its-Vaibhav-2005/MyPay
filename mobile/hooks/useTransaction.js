@@ -1,5 +1,4 @@
 import { useCallback, useState } from "react";
-import { Alert } from "react-native";
 import { API_URL } from "../constants/api";
 console.log("API_URL in useTransaction:", API_URL);
 export const useTransactions = (userId) => {
@@ -56,10 +55,10 @@ export const useTransactions = (userId) => {
                 throw new Error('Network response was not ok');
             }
             loadData();
-            Alert.alert("Success", "Transaction deleted successfully.");
+            return { success: true };
         }catch(error){
             console.log("Failed to delete transaction:", error);
-            Alert.alert("Error", "Failed to delete transaction.:"+error.message);
+            return { success: false, error: error.message };
         }
     }
 
