@@ -8,7 +8,7 @@ export const useTransactions = (userId) => {
     const [summary, setSummary] = useState({
         balance: 0,
         income: 0,
-        expenses: 0
+        expense: 0
     })
     const [isLoading, setIsLoading] = useState(true);
 
@@ -16,7 +16,7 @@ export const useTransactions = (userId) => {
         try{
             const response = await fetch(`${API_URL}/transactions/${userId}`);
             const data = await response.json();
-            setTransactions(data)
+            setTransactions(data.transactions || [])
         }catch(error){
             console.log("Failed to fetch transactions:", error);
         }
@@ -24,7 +24,9 @@ export const useTransactions = (userId) => {
 
     const fetchSummary = useCallback(async () => {
         try{
+            // const response = await fetch(`${API_URL}/transactions/summary/${userId}`);
             const response = await fetch(`${API_URL}/transactions/summary/${userId}`);
+            console.log("user:", userId);
             const data = await response.json();
             setSummary(data)
         }catch(error){
