@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut, useUser } from '@clerk/clerk-expo'
-import { useRouter } from 'expo-router'
+import { useRouter, useLocalSearchParams } from 'expo-router'
 import { Text, TouchableOpacity, View, FlatList, RefreshControl } from 'react-native'
 import { SignOutButton } from '@/components/SignOutButton'
 import PageLoader from "../../components/PageLoader"
@@ -17,6 +17,7 @@ import IonIcons from '@expo/vector-icons/Ionicons'
 export default function Page() {
   const { user } = useUser()
   const router = useRouter()
+  const { refresh } = useLocalSearchParams();
   const [refreshing, setRefreshing] =  useState(false);
   const [alertConfig, setAlertConfig] = useState({
     visible: false,
@@ -32,7 +33,7 @@ export default function Page() {
 
   useEffect(
     () => {
-      loadData()
+      loadData(), refresh
     }, [loadData]
   )
 

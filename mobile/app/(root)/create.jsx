@@ -90,7 +90,7 @@ const create = () => {
                 message: "Transaction created successfully!", 
                 onConfirm: () => {
                     hideAlert();
-                    router.back();
+                    router.navigate({ pathname: '/', params: { refresh: Date.now().toString() } });
                 }
             })
         }catch(error){
