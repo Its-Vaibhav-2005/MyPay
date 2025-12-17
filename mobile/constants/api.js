@@ -1,0 +1,1 @@
+export const API_URL = "https://mypay-backend-r57r.onrender.com/api"

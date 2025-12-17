@@ -1,8 +1,7 @@
 import { useCallback, useState } from "react";
 import { Alert } from "react-native";
-
-const API_URL = "https://mypay-backend-r57r.onrender.com/api";
-
+import { API_URL } from "../constants/api";
+console.log("API_URL in useTransaction:", API_URL);
 export const useTransactions = (userId) => {
     const [transactions, setTransactions] = useState([]);
     const [summary, setSummary] = useState({

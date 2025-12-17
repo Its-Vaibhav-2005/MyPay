@@ -6,13 +6,19 @@ import { formatDate } from "../lib/utility";
 
 // Map categories to their respective icons
 const CATEGORY_ICONS = {
-  "Food & Drinks": "fast-food",
-  Shopping: "cart",
-  Transportation: "car",
-  Entertainment: "film",
-  Bills: "receipt",
-  Income: "cash",
-  Other: "ellipsis-horizontal",
+    "Food & Drinks": "fast-food",
+    Shopping: "cart",
+    Transportation: "car",
+    Entertainment: "film",
+    Bills: "receipt",
+    Income: "cash",
+    Other: "ellipsis-horizontal",
+    "Friends & Family": "people",
+    Grocery: "basket",
+    Health: "heart",
+    Travel: "airplane",
+    Education: "book",
+    Gift: "gift",
 };
 
 export const TransactionItem = ({ item, onDelete }) => {
@@ -33,7 +39,7 @@ export const TransactionItem = ({ item, onDelete }) => {
           <Text
             style={[styles.transactionAmount, { color: isIncome ? COLORS.income : COLORS.expense }]}
           >
-            {isIncome ? "+" : "-"}${Math.abs(parseFloat(item.amount)).toFixed(2)}
+            {isIncome ? "+" : "-"} ₹ {Math.abs(parseFloat(item.amount)).toFixed(2)}
           </Text>
           <Text style={styles.transactionDate}>{formatDate(item.created_at)}</Text>
         </View>
